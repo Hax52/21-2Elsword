@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spot the Difference</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-top: 20px;
+            margin: 0;
+        }
+        #cheatsheet-toggle {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            width: 30px;
+            height: 30px;
+            background-color: #555;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: help;
+            z-index: 1000;
+            box-shadow: 0 0 8px rgba(0,0,0,0.4);
+        }
+        #cheatsheet-img {
+            position: fixed;
+            top: 50px;
+            left: 10px;
+            max-width: 400px;
+            height: auto;
+            border: 2px solid #777;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.6);
+            display: none;
+            z-index: 999;
+        }
+        #game-container {
+            width: 900px;
+            border: 2px solid #444;
+            background-color: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        #header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #444;
+        }
+        #title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #d8b8ff;
+        }
+        #timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff8a8a;
+            background-color: #333;
+            padding: 5px 15px;
+            border-radius: 5px;
+        }
+        #view-area {
+            position: relative;
+            margin-bottom: 20px;
+            width: 100%;
+            padding-top: 60%; /* Aspect Ratio for container */
+            background-color: #000;
+            overflow: hidden;
+        }
+        #background-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+        }
+        #item-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .item {
+            position: absolute;
+            height: auto; /* Maintain aspect ratio */
+            transform: translate(-50%, -95%); /* Positioned slightly higher */
+        }
+        #navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: rgba(0,0,0,0.4);
+            position: absolute;
+            bottom: 0;
+            width: calc(100% - 20px);
+            left: 0;
+        }
+        #section-title {
+            font-size: 20px;
+            color: #ccc;
+        }
+        .nav-arrow {
+            font-size: 40px;
+            color: #777;
+            cursor: pointer;
+            user-select: none;
+        }
+        .nav-arrow:hover {
+            color: #fff;
+        }
+        .nav-arrow.disabled {
+            color: #444;
+            cursor: not-allowed;
+        }
+        #chat-area {
+            background: #222;
+            padding: 15px;
+            min-height: 100px;
+            text-align: left;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            overflow-y: auto;
+            max-height: 150px;
+        }
+        #chat-input {
+            width: calc(100% - 24px);
+            padding: 10px;
+            font-size: 16px;
+            background-color: #333;
+            border: 1px solid #555;
+            color: #e0e0e0;
+            border-radius: 5px;
+        }
+        #answer-panel, #recap-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #222;
+            border-radius: 8px;
+        }
+        .answer-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        select, button {
+            padding: 8px;
+            font-size: 16px;
+            background-color: #333;
+            border: 1px solid #555;
+            color: #e0e0e0;
+            border-radius: 5px;
+        }
+        button { cursor: pointer; }
+        button:hover { background-color: #444; }
+        #recap-panel pre { text-align: left; white-space: pre-wrap; font-size: 16px; }
+        #result { margin-top: 15px; font-size: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="cheatsheet-toggle" title="Hover to see Cheatsheet">i</div>
+<img id="cheatsheet-img" src="cheatsheet.png" alt="Cheatsheet">
+
+<div id="game-container">
+    <div id="header">
+        <div id="title">Spot the Difference</div>
+        <div id="timer">⏱️ 2:00</div>
+    </div>
+
+    <div id="view-area">
+        <img id="background-img" src="" alt="Room Section View">
+        <div id="item-container"></div>
+        <div id="navigation">
+            <div id="nav-left" class="nav-arrow">◀</div>
+            <h2 id="section-title"></h2>
+            <div id="nav-right" class="nav-arrow">▶</div>
+        </div>
+    </div>
+
+    <div id="chat-area" style="display: none;"></div>
+    <input id="chat-input" placeholder="Type your room layout here and press Enter..." style="display: none;">
+
+    <div id="answer-panel" style="display: none;">
+        <h3>Select the 3 Safe Spots</h3>
+        <div class="answer-row">
+            Safe Spot 1:
+            <select id="area1"><option value="A">Player</option><option value="B">Computer 1</option><option value="C">Computer 2</option></select>
+            <select id="loc1"></select>
+        </div>
+        <div class="answer-row">
+            Safe Spot 2:
+            <select id="area2"><option value="A">Player</option><option value="B">Computer 1</option><option value="C">Computer 2</option></select>
+            <select id="loc2"></select>
+        </div>
+        <div class="answer-row">
+            Safe Spot 3:
+            <select id="area3"><option value="A">Player</option><option value="B">Computer 1</option><option value="C">Computer 2</option></select>
+            <select id="loc3"></select>
+        </div>
+        <button id="check-answer-btn">Check Answer</button>
+        <div id="result"></div>
+    </div>
+    
+    <div id="recap-panel" style="display: none;">
+        <h3>Recap</h3>
+        <pre id="recap-content"></pre>
+    </div>
+
+    <button id="start-btn">Start Game</button>
+    <button id="retry-btn" style="display: none;">Retry</button>
+
+</div>
+
+<script>
+// --- CONFIGURATION ---
+const FURNITURE_MAP = {
+    'L': 'lamp.png', 'S': 'sofa.png', 'Ch': 'chair.png',
+    'Cl': 'clock.png', 'P': 'pot.png', 'M': 'mirror.png'
+};
+const ITEM_HEIGHT_PERCENTS = {
+    'L': 18, 'S': 15, 'Ch': 15, 'Cl': 25, 'P': 20, 'M': 25
+};
+const SECTION_DATA = [
+    { src: 'left.png',  originalWidth: 506, originalHeight: 843 },
+    { src: 'mid.png',   originalWidth: 1897, originalHeight: 619  },
+    { src: 'right.png', originalWidth: 517, originalHeight: 827 }
+];
+const ALL_COORDINATES = [
+    [409, 356], [192, 480], [408, 605], [192, 729],
+    [323, 374], [692, 524], [1082, 528], [1498, 371],
+    [367, 710], [156, 589], [374, 466], [159, 347]
+];
+
+// --- GAME CONSTANTS ---
+const FURNITURE_TYPES = Object.keys(FURNITURE_MAP);
+const EMPTY = '_';
+const PLATFORM_COUNT = 12;
+const SAFE_SPOT_COUNT = 3;
+const MAX_ITEMS_PER_SECTION = 2;
+const SECTION_SIZE = 4;
+const GAME_TIME = 120;
+
+// --- DOM ELEMENTS ---
+const startBtn = document.getElementById('start-btn');
+const retryBtn = document.getElementById('retry-btn');
+const timerDisplay = document.getElementById('timer');
+const viewArea = document.getElementById('view-area');
+const bgImg = document.getElementById('background-img');
+const itemContainer = document.getElementById('item-container');
+const sectionTitle = document.getElementById('section-title');
+const navLeft = document.getElementById('nav-left');
+const navRight = document.getElementById('nav-right');
+const chatArea = document.getElementById('chat-area');
+const chatInput = document.getElementById('chat-input');
+const answerPanel = document.getElementById('answer-panel');
+const checkAnswerBtn = document.getElementById('check-answer-btn');
+const resultDisplay = document.getElementById('result');
+const recapPanel = document.getElementById('recap-panel');
+const recapContent = document.getElementById('recap-content');
+const cheatsheetToggle = document.getElementById('cheatsheet-toggle');
+const cheatsheetImg = document.getElementById('cheatsheet-img');
+
+// --- GAME STATE ---
+let timerInterval;
+let timeLeft;
+let currentSection = 1;
+let puzzle = {};
+
+// --- GAME LOGIC ---
+
+function generatePuzzle() {
+    const areas = { 'A': Array(PLATFORM_COUNT).fill(EMPTY), 'B': Array(PLATFORM_COUNT).fill(EMPTY), 'C': Array(PLATFORM_COUNT).fill(EMPTY) };
+    const areaKeys = Object.keys(areas);
+    const safeSpotIndices = shuffle([...Array(PLATFORM_COUNT).keys()]).slice(0, SAFE_SPOT_COUNT);
+    const solutions = {};
+    safeSpotIndices.forEach(i => {
+        const [item1, item2] = shuffle(FURNITURE_TYPES).slice(0, 2);
+        const oddOneOutArea = areaKeys[Math.floor(Math.random() * areaKeys.length)];
+        solutions[i + 1] = oddOneOutArea;
+        areaKeys.forEach(key => { areas[key][i] = (key === oddOneOutArea) ? item2 : item1; });
+    });
+    const nonSafeIndices = [...Array(PLATFORM_COUNT).keys()].filter(i => !safeSpotIndices.includes(i));
+    for (let i = 0; i < PLATFORM_COUNT / SECTION_SIZE; i++) {
+        const sectionStart = i * SECTION_SIZE;
+        const safeSpotsInSection = safeSpotIndices.filter(idx => idx >= sectionStart && idx < sectionStart + SECTION_SIZE);
+        const normalSpotsInSection = nonSafeIndices.filter(idx => idx >= sectionStart && idx < sectionStart + SECTION_SIZE);
+        const maxSlotsToFill = MAX_ITEMS_PER_SECTION - safeSpotsInSection.length;
+        if (maxSlotsToFill > 0 && normalSpotsInSection.length > 0) {
+            const numToActuallyFill = Math.floor(Math.random() * (maxSlotsToFill + 1));
+            const spotsToPopulate = shuffle(normalSpotsInSection).slice(0, numToActuallyFill);
+            spotsToPopulate.forEach(spotIdx => {
+                const item = FURNITURE_TYPES[Math.floor(Math.random() * FURNITURE_TYPES.length)];
+                areaKeys.forEach(key => areas[key][spotIdx] = item);
+            });
+        }
+    }
+    return { layouts: areas, solutions: solutions };
+}
+
+function renderCurrentSection() {
+    const sectionData = SECTION_DATA[currentSection];
+    sectionTitle.textContent = `Your Room - Section ${currentSection + 1} (Platforms ${currentSection * 4 + 1}-${currentSection * 4 + 4})`;
+
+    const placeItems = () => {
+        itemContainer.innerHTML = '';
+        const playerLayout = puzzle.layouts['A'];
+        const viewAreaRect = viewArea.getBoundingClientRect();
+        const aspectRatioView = viewAreaRect.width / viewAreaRect.height;
+        const aspectRatioImage = sectionData.originalWidth / sectionData.originalHeight;
+        let displayedImageWidth, displayedImageHeight, offsetX = 0, offsetY = 0;
+        if (aspectRatioView > aspectRatioImage) {
+            displayedImageHeight = viewAreaRect.height;
+            displayedImageWidth = displayedImageHeight * aspectRatioImage;
+            offsetX = (viewAreaRect.width - displayedImageWidth) / 2;
+        } else {
+            displayedImageWidth = viewAreaRect.width;
+            displayedImageHeight = displayedImageWidth / aspectRatioImage;
+            offsetY = (viewAreaRect.height - displayedImageHeight) / 2;
+        }
+        const scaledContainer = document.createElement('div');
+        scaledContainer.style.position = 'absolute';
+        scaledContainer.style.left = `${offsetX}px`;
+        scaledContainer.style.top = `${offsetY}px`;
+        scaledContainer.style.width = `${displayedImageWidth}px`;
+        scaledContainer.style.height = `${displayedImageHeight}px`;
+        itemContainer.appendChild(scaledContainer);
+        for (let i = 0; i < SECTION_SIZE; i++) {
+            const platformIndex = currentSection * SECTION_SIZE + i;
+            const itemType = playerLayout[platformIndex];
+            if (itemType !== EMPTY) {
+                const itemImg = document.createElement('img');
+                itemImg.src = FURNITURE_MAP[itemType];
+                itemImg.className = 'item';
+                const coords = ALL_COORDINATES[platformIndex];
+                itemImg.style.left = `${(coords[0] / sectionData.originalWidth) * 100}%`;
+                itemImg.style.top = `${(coords[1] / sectionData.originalHeight) * 100}%`;
+                let heightPercent = ITEM_HEIGHT_PERCENTS[itemType] || 15;
+                if (currentSection === 0 || currentSection === 2) {
+                    heightPercent *= 0.9;
+                }
+                itemImg.style.height = `${heightPercent}%`;
+                scaledContainer.appendChild(itemImg);
+            }
+        }
+    };
+
+    bgImg.onload = placeItems;
+    bgImg.src = sectionData.src;
+    if (bgImg.complete) {
+        placeItems();
+    }
+    navLeft.classList.toggle('disabled', currentSection === 0);
+    navRight.classList.toggle('disabled', currentSection === 2);
+}
+
+function loadSection(sectionIndex) {
+    currentSection = sectionIndex;
+    renderCurrentSection();
+}
+
+function navigate(direction) {
+    let newSection = currentSection;
+    if (direction === -1 && currentSection > 0) {
+        newSection--;
+    } else if (direction === 1 && currentSection < 2) {
+        newSection++;
+    }
+    if (newSection !== currentSection) {
+        loadSection(newSection);
+    }
+}
+
+function startTimer() {
+    timeLeft = GAME_TIME;
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            timerDisplay.textContent = "Time's Up!";
+            endGame(false);
+        }
+    }, 1000);
+}
+
+function updateTimerDisplay() {
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    timerDisplay.textContent = `⏱️ ${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function formatLayout(layout) {
+    let parts = [];
+    for (let i = 0; i < layout.length; i += SECTION_SIZE) {
+        parts.push(layout.slice(i, i + SECTION_SIZE).join(' '));
+    }
+    return parts.join(' / ');
+}
+
+function handleChatSubmit() {
+    const playerChat = chatInput.value.trim();
+    if (!playerChat) return;
+    
+    chatArea.innerHTML += `<div><strong>You:</strong> ${playerChat}</div>`;
+    chatArea.innerHTML += `<div><strong>Computer 1:</strong> ${formatLayout(puzzle.layouts['B'])}</div>`;
+    chatArea.innerHTML += `<div><strong>Computer 2:</strong> ${formatLayout(puzzle.layouts['C'])}</div>`;
+    chatInput.style.display = 'none';
+    chatArea.scrollTop = chatArea.scrollHeight;
+    
+    answerPanel.style.display = 'block';
+}
+
+// ====================================================================
+// MODIFIED FUNCTION: New logic for checking duplicate answers
+// ====================================================================
+function checkAnswers() {
+    const userAnswers = {};
+    const uniqueSelections = new Set(); // Use a Set to track unique pairs
+
+    for (let i = 1; i <= 3; i++) {
+        const area = document.getElementById(`area${i}`).value;
+        const loc = document.getElementById(`loc${i}`).value;
+        const selectionKey = `${area}-${loc}`; // Create a key like "A-5"
+
+        if (uniqueSelections.has(selectionKey)) {
+            resultDisplay.textContent = "You selected the exact same Area and Location twice. Please choose 3 unique safe spots.";
+            resultDisplay.style.color = 'orange';
+            return;
+        }
+        uniqueSelections.add(selectionKey);
+        userAnswers[loc] = area;
+    }
+
+    let correctCount = 0;
+    Object.keys(puzzle.solutions).forEach(loc => {
+        if (userAnswers[loc] === puzzle.solutions[loc]) {
+            correctCount++;
+        }
+    });
+
+    resultDisplay.textContent = `You found ${correctCount} out of 3 safe spots correctly.`;
+    resultDisplay.style.color = correctCount === 3 ? 'lime' : 'yellow';
+    
+    endGame(true);
+}
+
+function endGame(finished) {
+    clearInterval(timerInterval);
+    
+    chatInput.disabled = true;
+    checkAnswerBtn.disabled = true;
+    document.querySelectorAll('#answer-panel select').forEach(select => select.disabled = true);
+    
+    retryBtn.style.display = 'block';
+    
+    recapPanel.style.display = 'block';
+    let recapText = "--- Correct Solutions ---\n";
+    Object.keys(puzzle.solutions).sort((a,b) => a-b).forEach(loc => {
+        recapText += `Platform #${loc}: Different item in Area ${puzzle.solutions[loc]} (Player/Comp1/Comp2)\n`;
+    });
+    recapText += "\n--- Full Layouts --- \n";
+    recapText += `Player (A):     ${formatLayout(puzzle.layouts['A'])}\n`;
+    recapText += `Computer 1 (B): ${formatLayout(puzzle.layouts['B'])}\n`;
+    recapText += `Computer 2 (C): ${formatLayout(puzzle.layouts['C'])}`;
+    recapContent.textContent = recapText;
+}
+
+function initializeAnswerDropdowns() {
+    for (let i = 1; i <= 3; i++) {
+        const locSelect = document.getElementById(`loc${i}`);
+        locSelect.innerHTML = '';
+        for (let j = 1; j <= PLATFORM_COUNT; j++) {
+            const option = document.createElement('option');
+            option.value = j;
+            option.textContent = `Location ${j}`;
+            locSelect.appendChild(option);
+        }
+    }
+}
+
+function startGame() {
+    startBtn.style.display = 'none';
+    retryBtn.style.display = 'none';
+    viewArea.style.display = 'block';
+    chatArea.style.display = 'block';
+    chatInput.style.display = 'block';
+    answerPanel.style.display = 'none';
+    recapPanel.style.display = 'none';
+    
+    chatArea.innerHTML = '';
+    chatInput.value = '';
+    resultDisplay.textContent = '';
+    
+    chatInput.disabled = false;
+    checkAnswerBtn.disabled = false;
+    document.querySelectorAll('#answer-panel select').forEach(select => select.disabled = false);
+
+    puzzle = generatePuzzle();
+    loadSection(1);
+    startTimer();
+}
+
+// --- Event Listeners ---
+startBtn.addEventListener('click', startGame);
+retryBtn.addEventListener('click', startGame);
+navLeft.addEventListener('click', () => navigate(-1));
+navRight.addEventListener('click', () => navigate(1));
+chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleChatSubmit();
+});
+checkAnswerBtn.addEventListener('click', checkAnswers);
+window.addEventListener('resize', () => {
+    if (puzzle.layouts && bgImg.complete) {
+        renderCurrentSection();
+    }
+});
+
+cheatsheetToggle.addEventListener('mouseenter', () => {
+    cheatsheetImg.style.display = 'block';
+});
+cheatsheetToggle.addEventListener('mouseleave', () => {
+    cheatsheetImg.style.display = 'none';
+});
+cheatsheetImg.addEventListener('mouseleave', () => {
+    cheatsheetImg.style.display = 'none';
+});
+
+// --- Initial Setup ---
+function shuffle(array) {
+  let currentIndex = array.length, randomIndex;
+  while (currentIndex != 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+  }
+  return array;
+}
+viewArea.style.display = 'none';
+chatArea.style.display = 'none';
+chatInput.style.display = 'none';
+initializeAnswerDropdowns();
+
+</script>
+</body>
+</html>
