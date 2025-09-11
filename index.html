@@ -181,7 +181,7 @@
 </head>
 <body>
 
-<div id="cheatsheet-toggle" title="Cheatsheet">i</div>
+<div id="cheatsheet-toggle" title="Hover to see Cheatsheet">i</div>
 <img id="cheatsheet-img" src="cheatsheet.png" alt="Cheatsheet">
 
 <div id="game-container">
@@ -244,14 +244,19 @@ const ITEM_HEIGHT_PERCENTS = {
     'L': 18, 'S': 15, 'Ch': 15, 'Cl': 25, 'P': 20, 'M': 25
 };
 const SECTION_DATA = [
-    { src: 'left.png',  originalWidth: 506, originalHeight: 843 },
-    { src: 'mid.png',   originalWidth: 1897, originalHeight: 619  },
-    { src: 'right.png', originalWidth: 517, originalHeight: 827 }
+    { src: 'left.png',  originalWidth: 676, originalHeight: 1125 },
+    { src: 'mid.png',   originalWidth: 2000, originalHeight: 653  },
+    { src: 'right.png', originalWidth: 704, originalHeight: 1125 }
 ];
+
+// --- UPDATED COORDINATES ---
 const ALL_COORDINATES = [
-    [409, 356], [192, 480], [408, 605], [192, 729],
-    [323, 374], [692, 524], [1082, 528], [1498, 371],
-    [367, 710], [156, 589], [374, 466], [159, 347]
+    // Platforms 1-4 (left.png)
+    [540, 475], [260, 640], [539, 807], [260, 973],
+    // Platforms 5-8 (mid.png)
+    [190, 569], [708, 563], [1214, 568], [1716, 565],
+    // Platforms 9-12 (right.png)
+    [497, 966], [207, 801], [500, 634], [205, 472]
 ];
 
 // --- GAME CONSTANTS ---
@@ -434,18 +439,13 @@ function handleChatSubmit() {
     answerPanel.style.display = 'block';
 }
 
-// ====================================================================
-// MODIFIED FUNCTION: New logic for checking duplicate answers
-// ====================================================================
 function checkAnswers() {
     const userAnswers = {};
-    const uniqueSelections = new Set(); // Use a Set to track unique pairs
-
+    const uniqueSelections = new Set();
     for (let i = 1; i <= 3; i++) {
         const area = document.getElementById(`area${i}`).value;
         const loc = document.getElementById(`loc${i}`).value;
-        const selectionKey = `${area}-${loc}`; // Create a key like "A-5"
-
+        const selectionKey = `${area}-${loc}`;
         if (uniqueSelections.has(selectionKey)) {
             resultDisplay.textContent = "You selected the exact same Area and Location twice. Please choose 3 unique safe spots.";
             resultDisplay.style.color = 'orange';
@@ -566,5 +566,4 @@ initializeAnswerDropdowns();
 
 </script>
 </body>
-
 </html>
