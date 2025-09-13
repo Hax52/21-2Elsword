@@ -165,15 +165,37 @@
             gap: 15px;
             margin-bottom: 10px;
         }
-        select, button {
-            padding: 8px;
+        .answer-row > .label {
+            width: 100px;
+            text-align: right;
+            color: #ccc;
+        }
+        .answer-header {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #ddd;
+        }
+        .answer-header .label {
+            width: 100px;
+        }
+        .answer-header .column {
+            width: 120px; /* Should match select width */
+        }
+        select {
+            width: 120px;
+        }
+        button {
+            padding: 8px 20px;
             font-size: 16px;
             background-color: #333;
             border: 1px solid #555;
             color: #e0e0e0;
             border-radius: 5px;
+            cursor: pointer;
         }
-        button { cursor: pointer; }
         button:hover { background-color: #444; }
         #recap-panel pre { text-align: left; white-space: pre-wrap; font-size: 16px; }
         #result { margin-top: 15px; font-size: 20px; font-weight: bold; }
@@ -205,18 +227,23 @@
 
     <div id="answer-panel" style="display: none;">
         <h3>Select the 3 Safe Spots</h3>
+        <div class="answer-header">
+            <span class="label"></span>
+            <span class="column">Area</span>
+            <span class="column">Location</span>
+        </div>
         <div class="answer-row">
-            Safe Spot 1:
+            <span class="label">Safe Spot 1:</span>
             <select id="area1"><option value="A">Player</option><option value="B">Computer 1</option><option value="C">Computer 2</option></select>
             <select id="loc1"></select>
         </div>
         <div class="answer-row">
-            Safe Spot 2:
+            <span class="label">Safe Spot 2:</span>
             <select id="area2"><option value="A">Player</option><option value="B">Computer 1</option><option value="C">Computer 2</option></select>
             <select id="loc2"></select>
         </div>
         <div class="answer-row">
-            Safe Spot 3:
+            <span class="label">Safe Spot 3:</span>
             <select id="area3"><option value="A">Player</option><option value="B">Computer 1</option><option value="C">Computer 2</option></select>
             <select id="loc3"></select>
         </div>
@@ -225,7 +252,7 @@
     </div>
     
     <div id="recap-panel" style="display: none;">
-        <h3>Recap</h3>
+        <h3>Answer</h3>
         <pre id="recap-content"></pre>
     </div>
 
@@ -249,13 +276,9 @@ const SECTION_DATA = [
     { src: 'right.png', originalWidth: 704, originalHeight: 1125 }
 ];
 
-// --- UPDATED COORDINATES ---
 const ALL_COORDINATES = [
-    // Platforms 1-4 (left.png)
     [540, 475], [260, 640], [539, 807], [260, 973],
-    // Platforms 5-8 (mid.png)
     [190, 569], [708, 563], [1214, 568], [1716, 565],
-    // Platforms 9-12 (right.png)
     [497, 966], [207, 801], [500, 634], [205, 472]
 ];
 
@@ -269,6 +292,7 @@ const SECTION_SIZE = 4;
 const GAME_TIME = 120;
 
 // --- DOM ELEMENTS ---
+// (This section is unchanged)
 const startBtn = document.getElementById('start-btn');
 const retryBtn = document.getElementById('retry-btn');
 const timerDisplay = document.getElementById('timer');
@@ -297,6 +321,7 @@ let puzzle = {};
 // --- GAME LOGIC ---
 
 function generatePuzzle() {
+    // This function is unchanged
     const areas = { 'A': Array(PLATFORM_COUNT).fill(EMPTY), 'B': Array(PLATFORM_COUNT).fill(EMPTY), 'C': Array(PLATFORM_COUNT).fill(EMPTY) };
     const areaKeys = Object.keys(areas);
     const safeSpotIndices = shuffle([...Array(PLATFORM_COUNT).keys()]).slice(0, SAFE_SPOT_COUNT);
@@ -326,6 +351,7 @@ function generatePuzzle() {
 }
 
 function renderCurrentSection() {
+    // This function is unchanged
     const sectionData = SECTION_DATA[currentSection];
     sectionTitle.textContent = `Your Room - Section ${currentSection + 1} (Platforms ${currentSection * 4 + 1}-${currentSection * 4 + 4})`;
 
@@ -468,6 +494,9 @@ function checkAnswers() {
     endGame(true);
 }
 
+// ====================================================================
+// MODIFIED FUNCTION: Recap/Answer text is reordered and reformatted
+// ====================================================================
 function endGame(finished) {
     clearInterval(timerInterval);
     
@@ -478,14 +507,22 @@ function endGame(finished) {
     retryBtn.style.display = 'block';
     
     recapPanel.style.display = 'block';
-    let recapText = "--- Correct Solutions ---\n";
+    const areaMap = { 'A': 'Player', 'B': 'Computer 1', 'C': 'Computer 2' };
+
+    // Start with Full Layouts first
+    let recapText = "--- Full Layouts ---\n";
+    recapText += `Player:     ${formatLayout(puzzle.layouts['A'])}\n`; // (A) removed
+    recapText += `Computer 1: ${formatLayout(puzzle.layouts['B'])}\n`; // (B) removed
+    recapText += `Computer 2: ${formatLayout(puzzle.layouts['C'])}\n\n`;   // (C) removed
+
+    // Then add the Correct Solution
+    recapText += "--- Correct Solution ---\n";
     Object.keys(puzzle.solutions).sort((a,b) => a-b).forEach(loc => {
-        recapText += `Platform #${loc}: Different item in Area ${puzzle.solutions[loc]} (Player/Comp1/Comp2)\n`;
+        const areaName = areaMap[puzzle.solutions[loc]]; // Map key to name
+        // Use the new format
+        recapText += `Safe Spot is in ${areaName} Area, in Location #${loc}\n`;
     });
-    recapText += "\n--- Full Layouts --- \n";
-    recapText += `Player (A):     ${formatLayout(puzzle.layouts['A'])}\n`;
-    recapText += `Computer 1 (B): ${formatLayout(puzzle.layouts['B'])}\n`;
-    recapText += `Computer 2 (C): ${formatLayout(puzzle.layouts['C'])}`;
+    
     recapContent.textContent = recapText;
 }
 
@@ -538,7 +575,6 @@ window.addEventListener('resize', () => {
         renderCurrentSection();
     }
 });
-
 cheatsheetToggle.addEventListener('mouseenter', () => {
     cheatsheetImg.style.display = 'block';
 });
@@ -567,4 +603,3 @@ initializeAnswerDropdowns();
 </script>
 </body>
 </html>
-
